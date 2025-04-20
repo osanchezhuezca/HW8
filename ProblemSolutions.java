@@ -1,6 +1,6 @@
 /******************************************************************
  *
- *   ADD YOUR NAME / SECTION NUMBER HERE
+ *   Oscar Sanchez Huezca / Section 001
  *
  *   This java file contains the problem solutions of canFinish and
  *   numGroups methods.
@@ -72,18 +72,39 @@ class ProblemSolutions {
      * @return boolean          - True if all exams can be taken, else false.
      */
 
-    public boolean canFinish(int numExams, 
-                             int[][] prerequisites) {
-      
-        int numNodes = numExams;  // # of nodes in graph
+    public boolean canFinish(int numExams, int[][] prerequisites) {
+        int numNodes = numExams;
+        int[][] flippedEdges = new int[prerequisites.length][2];
+        for (int i = 0; i < prerequisites.length; i++) {
+            flippedEdges[i][0] = prerequisites[i][1]; 
+            flippedEdges[i][1] = prerequisites[i][0];
+        }
+        ArrayList<Integer>[] adj = getAdjList(numNodes, flippedEdges);
+        int[] inDegree = new int[numNodes];
+        for (int[] edge : flippedEdges) {
+            int to = edge[1];
+            inDegree[to]++;
+        }
+        Queue<Integer> queue = new LinkedList<>();
+        for (int i = 0; i < numNodes; i++) {
+            if (inDegree[i] == 0) {
+                queue.offer(i);
+            }
+        }
+        int count = 0;
+        while (!queue.isEmpty()) {
+            int curr = queue.poll();
+            count++;
 
-        // Build directed graph's adjacency list
-        ArrayList<Integer>[] adj = getAdjList(numExams, 
-                                        prerequisites); 
-
-        // ADD YOUR CODE HERE - ADD YOUR NAME / SECTION AT TOP OF FILE
-        return false;
-
+            for (int neighbor : adj[curr]) {
+                inDegree[neighbor]--;
+                if (inDegree[neighbor] == 0) {
+                    queue.offer(neighbor);
+                }
+            }
+        }
+        boolean result = (count == numNodes);
+        return result;
     }
 
 
@@ -189,10 +210,39 @@ class ProblemSolutions {
                 }
             }
         }
+        Set<Integer> visited = new HashSet<>();
+        int groupCount = 0;
 
-        // YOUR CODE GOES HERE - you can add helper methods, you do not need
-        // to put all code in this method.
-        return -1;
+        for (i = 0; i < numNodes; i++) {
+            if (!visited.contains(i)) {
+                groupCount++;
+                dfs(i, graph, visited);
+            }
+        }
+        int result = groupCount;
+        return result;
     }
 
+    /**
+     * Performs a depth-first search on the undirected graph starting from a given node.
+     * Marks all reachable nodes from the starting node as visited, effectively identifying
+     * all nodes in the current connected component (i.e., group).
+     *
+     * This method helps in counting the number of connected groups in the graph by
+     * visiting all nodes in a component recursively.
+     *
+     * @param node     the starting node of the DFS traversal
+     * @param graph    the adjacency list representation of the undirected graph
+     * @param visited  a set tracking all nodes that have already been visited
+     */   
+    private void dfs(int node, Map<Integer, List<Integer>> graph, Set<Integer> visited) {
+        visited.add(node);
+
+        for (int neighbor : graph.getOrDefault(node, new ArrayList<>())) {
+            if (!visited.contains(neighbor)) {
+                dfs(neighbor, graph, visited);
+            }
+        }
+    }
 }
+
